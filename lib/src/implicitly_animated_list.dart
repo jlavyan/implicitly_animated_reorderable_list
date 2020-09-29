@@ -170,7 +170,8 @@ class ImplicitlyAnimatedList<E> extends StatelessWidget {
 }
 
 /// A Flutter Sliver that implicitly animates between the changes of two lists.
-class SliverImplicitlyAnimatedList<E> extends ImplicitlyAnimatedListBase<Widget, E> {
+class SliverImplicitlyAnimatedList<E>
+    extends ImplicitlyAnimatedListBase<Widget, E> {
   /// Creates a Flutter Sliver that implicitly animates between the changes of two lists.
   ///
   /// {@template implicitly_animated_reorderable_list.constructor}
@@ -221,11 +222,13 @@ class SliverImplicitlyAnimatedList<E> extends ImplicitlyAnimatedListBase<Widget,
         );
 
   @override
-  _SliverImplicitlyAnimatedListState<E> createState() => _SliverImplicitlyAnimatedListState<E>();
+  _SliverImplicitlyAnimatedListState<E> createState() =>
+      _SliverImplicitlyAnimatedListState<E>();
 }
 
 class _SliverImplicitlyAnimatedListState<E>
-    extends ImplicitlyAnimatedListBaseState<Widget, SliverImplicitlyAnimatedList<E>, E> {
+    extends ImplicitlyAnimatedListBaseState<Widget,
+        SliverImplicitlyAnimatedList<E>, E> {
   @override
   Widget build(BuildContext context) {
     return SliverAnimatedList(

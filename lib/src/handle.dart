@@ -105,7 +105,9 @@ class _HandleState extends State<Handle> {
     final hasParent = _scrollable != null;
     final physics = _list?.widget?.physics;
 
-    return hasParent && physics != null && physics is NeverScrollableScrollPhysics;
+    return hasParent &&
+        physics != null &&
+        physics is NeverScrollableScrollPhysics;
   }
 
   void _addScrollListener() {
@@ -138,9 +140,11 @@ class _HandleState extends State<Handle> {
   @override
   Widget build(BuildContext context) {
     _list ??= ImplicitlyAnimatedReorderableList.of(context);
-    assert(_list != null, 'No ancestor ImplicitlyAnimatedReorderableList was found in the hierarchy!');
+    assert(_list != null,
+        'No ancestor ImplicitlyAnimatedReorderableList was found in the hierarchy!');
     _reorderable ??= Reorderable.of(context);
-    assert(_reorderable != null, 'No ancestor Reorderable was found in the hierarchy!');
+    assert(_reorderable != null,
+        'No ancestor Reorderable was found in the hierarchy!');
     _scrollable = Scrollable.of(_list.context);
 
     return Listener(

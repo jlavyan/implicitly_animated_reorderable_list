@@ -29,7 +29,8 @@ class DiffDelegate<E> {
       } else {
         int insertIndex = diff.size;
         while (insertIndex < diffLength) {
-          _callback.onInserted(insertIndex + diff.index, diff.items[insertIndex]);
+          _callback.onInserted(
+              insertIndex + diff.index, diff.items[insertIndex]);
           insertIndex++;
         }
       }

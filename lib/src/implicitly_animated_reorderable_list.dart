@@ -181,12 +181,14 @@ class ImplicitlyAnimatedReorderableList<E>
       ImplicitlyAnimatedReorderableListState<E>();
 
   static ImplicitlyAnimatedReorderableListState of(BuildContext context) {
-    return context.findAncestorStateOfType<ImplicitlyAnimatedReorderableListState>();
+    return context
+        .findAncestorStateOfType<ImplicitlyAnimatedReorderableListState>();
   }
 }
 
-class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBaseState<
-    Reorderable, ImplicitlyAnimatedReorderableList<E>, E> {
+class ImplicitlyAnimatedReorderableListState<E>
+    extends ImplicitlyAnimatedListBaseState<Reorderable,
+        ImplicitlyAnimatedReorderableList<E>, E> {
   // The key of the custom scroll view.
   final GlobalKey _listKey = GlobalKey(debugLabel: 'list_key');
   // The key of the draggedItem.
@@ -306,9 +308,11 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
 
     // Allow the dragged item to be overscrolled to allow for
     // continous scrolling while in drag.
-    final overscrollBound = _canScroll && !(hasHeader || hasFooter) ? _dragSize : 0;
+    final overscrollBound =
+        _canScroll && !(hasHeader || hasFooter) ? _dragSize : 0;
     // Constrain the dragged item to the bounds of the list.
-    final minDelta = (_headerHeight - (dragItem.start + overscrollBound)) - _scrollDelta;
+    final minDelta =
+        (_headerHeight - (dragItem.start + overscrollBound)) - _scrollDelta;
     final maxDelta = ((_maxScrollOffset + _listSize + overscrollBound) -
             (dragItem.bottom + _footerHeight)) -
         _scrollDelta;
@@ -337,7 +341,8 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
         _closestList.add(item);
       } else {
         final position = isVertical ? item.center.dy : item.center.dx;
-        if ((_motionUp && _dragStart < position) || (!_motionUp && _dragEnd > position)) {
+        if ((_motionUp && _dragStart < position) ||
+            (!_motionUp && _dragEnd > position)) {
           item.distance = ((_up ? _dragStart : _dragEnd) - position).abs();
           _closestList.add(item);
         }
@@ -456,7 +461,8 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
       final dragBox = _dragKey?.renderBox;
       if (dragBox == null) return;
 
-      final dragOffset = dragBox.localToGlobal(Offset.zero, ancestor: context.renderBox);
+      final dragOffset =
+          dragBox.localToGlobal(Offset.zero, ancestor: context.renderBox);
       final dragItemStart = isVertical ? dragOffset.dy : dragOffset.dx;
       final dragItemEnd = dragItemStart + _dragSize;
 
@@ -590,7 +596,8 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
     final needsRebuild = _listSize == 0 || inDrag != _prevInDrag;
     _prevInDrag = inDrag;
 
-    double getSizeOfKey(GlobalKey key) => (isVertical ? key?.height : key?.width) ?? 0.0;
+    double getSizeOfKey(GlobalKey key) =>
+        (isVertical ? key?.height : key?.width) ?? 0.0;
 
     postFrame(() {
       _listSize = getSizeOfKey(_listKey);
@@ -645,7 +652,8 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
             itemBuilder: (context, index, animation) {
               final item = data[index];
 
-              final Reorderable child = buildItem(context, animation, item, index);
+              final Reorderable child =
+                  buildItem(context, animation, item, index);
               postFrame(() => _measureChild(child.key, index));
 
               if (dragKey != null && index == _dragIndex) {
@@ -761,7 +769,8 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
         }
       })
       ..addStatusListener((status) {
-        if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+        if (status == AnimationStatus.completed ||
+            status == AnimationStatus.dismissed) {
           didUpdateList = false;
         }
       });

@@ -6,7 +6,8 @@ export 'handler.dart';
 export 'invisible.dart';
 export 'key_extensions.dart';
 
-void postFrame(VoidCallback callback) => WidgetsBinding.instance.addPostFrameCallback((_) => callback());
+void postFrame(VoidCallback callback) =>
+    WidgetsBinding.instance.addPostFrameCallback((_) => callback());
 
 extension ListExtension<E> on List<E> {
   E getOrNull(int index) {

@@ -9,11 +9,14 @@ import 'src.dart';
 typedef AnimatedItemBuilder<W extends Widget, E> = W Function(
     BuildContext context, Animation<double> animation, E item, int i);
 
-typedef RemovedItemBuilder<W extends Widget, E> = W Function(BuildContext context, Animation<double> animation, E item);
+typedef RemovedItemBuilder<W extends Widget, E> = W Function(
+    BuildContext context, Animation<double> animation, E item);
 
-typedef UpdatedItemBuilder<W extends Widget, E> = W Function(BuildContext context, Animation<double> animation, E item);
+typedef UpdatedItemBuilder<W extends Widget, E> = W Function(
+    BuildContext context, Animation<double> animation, E item);
 
-abstract class ImplicitlyAnimatedListBase<W extends Widget, E> extends StatefulWidget {
+abstract class ImplicitlyAnimatedListBase<W extends Widget, E>
+    extends StatefulWidget {
   /// Called, as needed, to build list item widgets.
   ///
   /// List items are only built when they're scrolled into view.
@@ -77,8 +80,10 @@ abstract class ImplicitlyAnimatedListBase<W extends Widget, E> extends StatefulW
         super(key: key);
 }
 
-abstract class ImplicitlyAnimatedListBaseState<W extends Widget, B extends ImplicitlyAnimatedListBase<W, E>, E>
-    extends State<B> with DiffCallback<E>, TickerProviderStateMixin {
+abstract class ImplicitlyAnimatedListBaseState<
+    W extends Widget,
+    B extends ImplicitlyAnimatedListBase<W, E>,
+    E> extends State<B> with DiffCallback<E>, TickerProviderStateMixin {
   @protected
   GlobalKey<SliverAnimatedListState> animatedListKey;
 
@@ -180,7 +185,7 @@ abstract class ImplicitlyAnimatedListBaseState<W extends Widget, B extends Impli
 
       await _delegate.applyDiffs(diffs);
       if (!mounted) return;
-      
+
       setState(() {
         _data = List.from(_newItems);
       });
@@ -203,7 +208,8 @@ abstract class ImplicitlyAnimatedListBaseState<W extends Widget, B extends Impli
   @nonVirtual
   @protected
   @override
-  bool areItemsTheSame(E oldItem, E newItem) => widget.areItemsTheSame(oldItem, newItem);
+  bool areItemsTheSame(E oldItem, E newItem) =>
+      widget.areItemsTheSame(oldItem, newItem);
 
   @mustCallSuper
   @protected
@@ -242,7 +248,8 @@ abstract class ImplicitlyAnimatedListBaseState<W extends Widget, B extends Impli
 
   @nonVirtual
   @protected
-  Widget buildItem(BuildContext context, Animation<double> animation, E item, int index) {
+  Widget buildItem(
+      BuildContext context, Animation<double> animation, E item, int index) {
     if (updateItemBuilder != null && changes[item] != null) {
       return buildUpdatedItemWidget(item);
     }
