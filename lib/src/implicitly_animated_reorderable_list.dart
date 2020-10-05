@@ -307,11 +307,14 @@ class ImplicitlyAnimatedReorderableListState<E>
     final overscrollBound =
         _canScroll && !(hasHeader || hasFooter) ? _dragSize : 0;
     // Constrain the dragged item to the bounds of the list.
-    final minDelta =
-      (_headerHeight - (dragItem.start + overscrollBound)) - _scrollDelta - 5;
+    const epsilon = 2.0;
+    final minDelta = (_headerHeight - (dragItem.start + overscrollBound)) -
+        _scrollDelta -
+        epsilon;
     final maxDelta = ((_maxScrollOffset + _listSize + overscrollBound) -
-      (dragItem.bottom + _footerHeight)) -
-      _scrollDelta + 5;
+            (dragItem.bottom + _footerHeight)) -
+        _scrollDelta +
+        epsilon;
 
     _pointerDelta = delta.clamp(minDelta, maxDelta);
     _dragDelta = _pointerDelta + _scrollDelta;
@@ -455,10 +458,26 @@ class ImplicitlyAnimatedReorderableListState<E>
   /// We need virtual indices reflecting moves. An empty space in the virtual indices for a non-drag
   /// item will be the destination index of the dragged item.
   _Item findSwapTargetItem() {
-    final currentIndexList = _itemBoxes.values.where((item) => item != dragItem).map((item) {
+    // Account for the fact, that a move could have been scheduled,
+    // without the widget having fully rebuild itself. In that case, the translation
+    // would be 0.0 (and thus the index calculation wrong) and controller.isAnimating will be true.
+    //
+    // This can be the case, when the user released his finger just
+    // short moments after a move had been scheduled (using _dispatchMove()).
+    for (final item in _itemBoxes.values) {
+      if (item == dragItem) continue;
+      final translation = getTranslation(item.key);
+      final controller = _itemTranslations[item.key];
+      if (translation == 0.0 && controller?.isAnimating == true) {
+        return item;
+      }
+    }
+
+    final currentIndexList =
+        _itemBoxes.values.where((item) => item != dragItem).map((item) {
       final translation = getTranslation(item.key);
 
-      if (translation  == 0) {
+      if (translation == 0) {
         return item.index;
       } else if (translation > 0) {
         return item.index + 1;
@@ -475,7 +494,10 @@ class ImplicitlyAnimatedReorderableListState<E>
       }
     }
 
-    return _itemBoxes.values.firstWhere((item) => item.index == dragTargetIndex);
+    return _itemBoxes.values.firstWhere(
+      (item) => item.index == dragTargetIndex,
+      orElse: () => dragItem,
+    );
   }
 
   void onDragEnded() {
@@ -506,7 +528,9 @@ class ImplicitlyAnimatedReorderableListState<E>
       _cancelReorder();
     };
 
-    final delta = swapTargetItem != dragItem ? swapTargetItem.start - _dragStart : -_pointerDelta;
+    final delta = swapTargetItem != dragItem
+        ? swapTargetItem.start - _dragStart
+        : -_pointerDelta;
 
     _dispatchMove(
       dragKey,

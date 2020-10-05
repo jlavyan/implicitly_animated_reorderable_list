@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.3.0
+- Fix #23
+
 ## 0.2.2 - 0.2.5
 - Bug fixes
 - Fix #14
