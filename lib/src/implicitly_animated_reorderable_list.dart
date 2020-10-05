@@ -436,36 +436,42 @@ class ImplicitlyAnimatedReorderableListState<E>
     });
   }
 
-  _Item findSwapCandidateItem() {
-    if (_up) {
-      for (final item in _itemBoxes.values.toList().reversed) {
-        if (item.start <= _dragEnd) {
-          return item;
-        }
+  _Item findSwapTargetItem() {
+    final currentIndexList = _itemBoxes.values.where((item) => item != dragItem).map((item) {
+      final translation = getTranslation(item.key);
+
+      if (translation  == 0) {
+        return item.index;
+      } else if (translation > 0) {
+        return item.index + 1;
+      } else {
+        return item.index - 1;
       }
-    } else {
-      for (final item in _itemBoxes.values) {
-        if (_dragStart <= item.end) {
-          return item;
-        }
+    });
+
+    int dragTargetIndex = _dragIndex;
+    for (int i = 0; i < _itemBoxes.length; i++) {
+      if (!currentIndexList.contains(i)) {
+        dragTargetIndex = i;
+        break;
       }
     }
 
-    return dragItem;
+    return _itemBoxes.values.firstWhere((item) => item.index == dragTargetIndex);
   }
 
   void onDragEnded() {
     if (dragKey == null) return;
 
-    final swapCandidateItem = findSwapCandidateItem();
+    final swapTargetItem = findSwapTargetItem();
 
     _onDragEnd = () {
       if (_dragIndex != null) {
-        if (!_itemBoxes.containsKey(swapCandidateItem.key)) {
-          _measureChild(swapCandidateItem.key);
+        if (!_itemBoxes.containsKey(swapTargetItem.key)) {
+          _measureChild(swapTargetItem.key);
         }
 
-        final toIndex = _itemBoxes[swapCandidateItem.key]?.index;
+        final toIndex = _itemBoxes[swapTargetItem.key]?.index;
         if (toIndex != null) {
           final item = data.removeAt(_dragIndex);
           data.insert(toIndex, item);
@@ -482,7 +488,7 @@ class ImplicitlyAnimatedReorderableListState<E>
       _cancelReorder();
     };
 
-    final delta = swapCandidateItem != dragItem ? swapCandidateItem.start - _dragStart : -_pointerDelta;
+    final delta = swapTargetItem != dragItem ? swapTargetItem.start - _dragStart : -_pointerDelta;
 
     _dispatchMove(
       dragKey,
