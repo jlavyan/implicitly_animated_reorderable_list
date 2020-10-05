@@ -87,7 +87,7 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
   // * An example of a vertically reorderable list.
   Widget _buildVerticalLanguageList() {
     final theme = Theme.of(context);
-    const listPadding = EdgeInsets.only(right: 30);
+const listPadding = EdgeInsets.zero;
 
     Widget buildReorderable(
       Language lang,
