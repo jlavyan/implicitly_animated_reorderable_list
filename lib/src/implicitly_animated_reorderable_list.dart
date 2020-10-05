@@ -447,13 +447,13 @@ class ImplicitlyAnimatedReorderableListState<E>
     });
   }
 
+  /// Finds the destination of the dragged item.
   ///
-  /// Finding destination of drag item.
-  /// Items can move to up/down so position can be changed while index is not change.
-  /// We need virtual index reflecting moves.
-  /// Empty space of virtual indexes for non-drag item will be destination index of drag item.
+  /// Items can move up or down, so the position of an item can change while the
+  /// index is not yet changed.
   ///
-
+  /// We need virtual indices reflecting moves. An empty space in the virtual indices for a non-drag
+  /// item will be the destination index of the dragged item.
   _Item findSwapTargetItem() {
     final currentIndexList = _itemBoxes.values.where((item) => item != dragItem).map((item) {
       final translation = getTranslation(item.key);
