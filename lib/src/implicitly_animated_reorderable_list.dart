@@ -319,15 +319,17 @@ class ImplicitlyAnimatedReorderableListState<E>
     _adjustItemTranslations();
   }
 
-  /// adjust translations for all non-drag items.
+  /// Adjust translations for all items that are not being dragged.
   ///
-  /// all non-drag items can have 2 states.
-  /// 1. not translated (original position)
-  /// 2. translated (to up or down)
+  /// All non-drag items can be in one of two states:
+  /// 1. Not translated (original position)
+  /// 2. Translated (to up or down)
   ///
-  /// if some item's index is less than _dragIndex, position of the item can move to 1 space down or in place.
-  /// if some item's index is bigger than _dragIndex, position of the item can move to 1 space up or in place.
+  /// If some items index is smaller than _dragIndex,
+  /// the position of the item can move to 1 space down or stay in place.
   ///
+  /// If some items index is bigger than _dragIndex,
+  /// the position of the item can move to 1 space up or stay in place.
   void _adjustItemTranslations() {
     for (final item in _itemBoxes.values) {
       if (item == dragItem) continue;
