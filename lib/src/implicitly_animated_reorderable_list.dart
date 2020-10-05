@@ -238,7 +238,7 @@ class ImplicitlyAnimatedReorderableListState<E>
   int get _dragIndex => dragItem?.index;
   double get _dragStart => dragItem.start + _dragDelta;
   double get _dragEnd => dragItem.end + _dragDelta;
-  // double get _dragCenter => dragItem.middle + _dragDelta;
+  double get _dragCenter => dragItem.middle + _dragDelta;
   double get _dragSize => isVertical ? dragItem.height : dragItem.width;
 
   final ValueNotifier<double> _dragDeltaNotifier = ValueNotifier(0.0);
@@ -252,9 +252,6 @@ class ImplicitlyAnimatedReorderableListState<E>
   final Map<Key, ReorderableState> _items = {};
   final Map<Key, AnimationController> _itemTranslations = {};
   final Map<Key, _Item> _itemBoxes = {};
-
-  _Item get _next => _closestList.firstOrNull;
-  final List<_Item> _closestList = [];
 
   @override
   void initState() {
@@ -286,7 +283,6 @@ class ImplicitlyAnimatedReorderableListState<E>
       final offset = _itemOffset(key);
       _dragStartOffset = isVertical ? offset.dy : offset.dx;
       _dragStartScrollOffset = scrollOffset;
-      _findClosestItem();
 
       setState(() {
         _inDrag = true;
@@ -312,71 +308,20 @@ class ImplicitlyAnimatedReorderableListState<E>
         _canScroll && !(hasHeader || hasFooter) ? _dragSize : 0;
     // Constrain the dragged item to the bounds of the list.
     final minDelta =
-        (_headerHeight - (dragItem.start + overscrollBound)) - _scrollDelta;
+      (_headerHeight - (dragItem.start + overscrollBound)) - _scrollDelta - 5;
     final maxDelta = ((_maxScrollOffset + _listSize + overscrollBound) -
-            (dragItem.bottom + _footerHeight)) -
-        _scrollDelta;
+      (dragItem.bottom + _footerHeight)) -
+      _scrollDelta + 5;
 
     _pointerDelta = delta.clamp(minDelta, maxDelta);
     _dragDelta = _pointerDelta + _scrollDelta;
 
-    if (delta < minDelta || delta > maxDelta) {
-      return;
-    }
-
-    _findClosestItem();
-
-    if (_next == null || _next.key == dragKey) return;
-
-    _translateNextItem();
-    _adjustPreviousItemTranslations();
+    _adjustItemTranslations();
   }
 
-  void _findClosestItem() {
-    _closestList.clear();
-
+  void _adjustItemTranslations() {
     for (final item in _itemBoxes.values) {
-      if (item == dragItem) {
-        item.distance = _pointerDelta.abs();
-        _closestList.add(item);
-      } else {
-        final position = isVertical ? item.center.dy : item.center.dx;
-        if ((_motionUp && _dragStart < position) ||
-            (!_motionUp && _dragEnd > position)) {
-          item.distance = ((_up ? _dragStart : _dragEnd) - position).abs();
-          _closestList.add(item);
-        }
-      }
-    }
-
-    _closestList.sort();
-  }
-
-  void _translateNextItem() {
-    final key = _next.key;
-    final translation = getTranslation(key);
-    final center = _next.middle;
-
-    final isShifted = translation != 0.0;
-
-    if (_up) {
-      if (_dragStart <= center && !isShifted) {
-        _dispatchMove(key, _dragSize);
-      } else if (_dragStart > center && isShifted) {
-        _dispatchMove(key, 0);
-      }
-    } else {
-      if (_dragEnd >= center && !isShifted) {
-        _dispatchMove(key, -_dragSize);
-      } else if (_dragEnd < center && isShifted) {
-        _dispatchMove(key, 0);
-      }
-    }
-  }
-
-  void _adjustPreviousItemTranslations() {
-    for (final item in _itemBoxes.values) {
-      if (item == dragItem || item == _next) continue;
+      if (item == dragItem) continue;
 
       final key = item.key;
       if (_itemTranslations[key]?.isAnimating == true) continue;
@@ -384,19 +329,19 @@ class ImplicitlyAnimatedReorderableListState<E>
       final translation = getTranslation(key);
 
       final index = item.index;
-      final closestIndex = _next.index;
+      final currentItemCenter = item.middle + translation;
 
-      if (index > _dragIndex) {
-        if (translation == 0.0 && index < closestIndex) {
-          _dispatchMove(key, -_dragSize);
-        } else if (translation != 0.0 && index > closestIndex) {
+      if (index < _dragIndex) {
+        if (currentItemCenter > _dragCenter && translation == 0) {
+          _dispatchMove(key, _dragSize);
+        } else if (currentItemCenter < _dragCenter && translation != 0) {
           _dispatchMove(key, 0);
         }
-      } else if (index < _dragIndex) {
-        if (translation == 0.0 && index > closestIndex) {
-          _dispatchMove(key, _dragSize);
-        } else if (translation != 0.0 && index < closestIndex) {
+      } else if (index > _dragIndex) {
+        if (currentItemCenter > _dragCenter && translation != 0) {
           _dispatchMove(key, 0);
+        } else if (currentItemCenter < _dragCenter && translation == 0) {
+          _dispatchMove(key, -_dragSize);
         }
       }
     }
@@ -491,20 +436,36 @@ class ImplicitlyAnimatedReorderableListState<E>
     });
   }
 
-  void onDragEnded() {
-    if (dragKey == null || _closestList.isEmpty) return;
-
-    if (getTranslation(_next.key) == 0.0) {
-      _dispatchMove(_next.key, _up ? _dragSize : -_dragSize);
+  _Item findSwapCandidateItem() {
+    if (_up) {
+      for (final item in _itemBoxes.values.toList().reversed) {
+        if (item.start <= _dragEnd) {
+          return item;
+        }
+      }
+    } else {
+      for (final item in _itemBoxes.values) {
+        if (_dragStart <= item.end) {
+          return item;
+        }
+      }
     }
+
+    return dragItem;
+  }
+
+  void onDragEnded() {
+    if (dragKey == null) return;
+
+    final swapCandidateItem = findSwapCandidateItem();
 
     _onDragEnd = () {
       if (_dragIndex != null) {
-        if (!_itemBoxes.containsKey(_next.key)) {
-          _measureChild(_next.key);
+        if (!_itemBoxes.containsKey(swapCandidateItem.key)) {
+          _measureChild(swapCandidateItem.key);
         }
 
-        final toIndex = _itemBoxes[_next.key]?.index;
+        final toIndex = _itemBoxes[swapCandidateItem.key]?.index;
         if (toIndex != null) {
           final item = data.removeAt(_dragIndex);
           data.insert(toIndex, item);
@@ -521,7 +482,7 @@ class ImplicitlyAnimatedReorderableListState<E>
       _cancelReorder();
     };
 
-    final delta = _next != dragItem ? _next.start - _dragStart : -_pointerDelta;
+    final delta = swapCandidateItem != dragItem ? swapCandidateItem.start - _dragStart : -_pointerDelta;
 
     _dispatchMove(
       dragKey,
