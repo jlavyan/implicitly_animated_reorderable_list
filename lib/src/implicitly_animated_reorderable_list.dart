@@ -319,6 +319,15 @@ class ImplicitlyAnimatedReorderableListState<E>
     _adjustItemTranslations();
   }
 
+  /// adjust translations for all non-drag items.
+  ///
+  /// all non-drag items can have 2 states.
+  /// 1. not translated (original position)
+  /// 2. translated (to up or down)
+  ///
+  /// if some item's index is less than _dragIndex, position of the item can move to 1 space down or in place.
+  /// if some item's index is bigger than _dragIndex, position of the item can move to 1 space up or in place.
+  ///
   void _adjustItemTranslations() {
     for (final item in _itemBoxes.values) {
       if (item == dragItem) continue;
@@ -435,6 +444,13 @@ class ImplicitlyAnimatedReorderableListState<E>
       }
     });
   }
+
+  ///
+  /// Finding destination of drag item.
+  /// Items can move to up/down so position can be changed while index is not change.
+  /// We need virtual index reflecting moves.
+  /// Empty space of virtual indexes for non-drag item will be destination index of drag item.
+  ///
 
   _Item findSwapTargetItem() {
     final currentIndexList = _itemBoxes.values.where((item) => item != dragItem).map((item) {
