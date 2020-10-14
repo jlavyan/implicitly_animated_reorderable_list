@@ -18,22 +18,6 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
   List<String> nestedList = List.generate(20, (i) => "$i");
   bool nestedInReorder = false;
 
-  Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // setTimer();
-  }
-
-  void setTimer() {
-    _timer = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
-      setState(() => nestedList.shuffle());
-      print(nestedList);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -55,18 +39,13 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
               ..addAll(newList);
           });
         },
-        header: GestureDetector(
-          onTap: () {
-            _timer.isActive ? _timer.cancel() : setTimer();
-          },
-          child: Container(
-            height: 120,
-            color: Colors.red,
-            child: Center(
-              child: Text(
-                'Header',
-                style: textTheme.headline6.copyWith(color: Colors.white),
-              ),
+        header: Container(
+          height: 120,
+          color: Colors.red,
+          child: Center(
+            child: Text(
+              'Header',
+              style: textTheme.headline6.copyWith(color: Colors.white),
             ),
           ),
         ),
@@ -123,7 +102,6 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 }
