@@ -214,7 +214,7 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.delete,
                       color: Colors.white,
                     ),
@@ -266,7 +266,7 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
               ),
             ),
           ),
-          trailing: Handle(
+          trailing: const Handle(
             delay: Duration(milliseconds: 100),
             child: Icon(
               Icons.drag_handle,
@@ -338,7 +338,7 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ListTile(
-            leading: SizedBox(
+            leading: const SizedBox(
               height: 36,
               width: 36,
               child: Center(

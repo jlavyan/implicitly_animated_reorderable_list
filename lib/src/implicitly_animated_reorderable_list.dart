@@ -220,7 +220,6 @@ class ImplicitlyAnimatedReorderableListState<E>
   double get _scrollDelta => scrollOffset - _dragStartScrollOffset;
   bool get _canScroll => _maxScrollOffset > 0.0;
 
-  bool _motionUp = false;
   bool get _up => _dragDelta.isNegative;
 
   // Whether there is an item in the list that is currently being
@@ -237,7 +236,7 @@ class ImplicitlyAnimatedReorderableListState<E>
   Key get dragKey => dragItem?.key;
   int get _dragIndex => dragItem?.index;
   double get _dragStart => dragItem.start + _dragDelta;
-  double get _dragEnd => dragItem.end + _dragDelta;
+  // double get _dragEnd => dragItem.end + _dragDelta;
   double get _dragCenter => dragItem.middle + _dragDelta;
   double get _dragSize => isVertical ? dragItem.height : dragItem.width;
 
@@ -295,12 +294,8 @@ class ImplicitlyAnimatedReorderableListState<E>
     }
   }
 
-  void onDragUpdated(double delta, {bool isUpward}) {
+  void onDragUpdated(double delta) {
     if (dragKey == null || dragItem == null) return;
-
-    if (isUpward != null) {
-      _motionUp = isUpward;
-    }
 
     // Allow the dragged item to be overscrolled to allow for
     // continous scrolling while in drag.
@@ -346,15 +341,15 @@ class ImplicitlyAnimatedReorderableListState<E>
       final currentItemCenter = item.middle + translation;
 
       if (index < _dragIndex) {
-        if (currentItemCenter > _dragCenter && translation == 0) {
+        if (currentItemCenter >= _dragCenter && translation == 0) {
           _dispatchMove(key, _dragSize);
-        } else if (currentItemCenter < _dragCenter && translation != 0) {
+        } else if (currentItemCenter <= _dragCenter && translation != 0) {
           _dispatchMove(key, 0);
         }
       } else if (index > _dragIndex) {
-        if (currentItemCenter > _dragCenter && translation != 0) {
+        if (currentItemCenter >= _dragCenter && translation != 0) {
           _dispatchMove(key, 0);
-        } else if (currentItemCenter < _dragCenter && translation == 0) {
+        } else if (currentItemCenter <= _dragCenter && translation == 0) {
           _dispatchMove(key, -_dragSize);
         }
       }

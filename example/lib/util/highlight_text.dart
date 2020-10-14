@@ -30,8 +30,9 @@ class HighlightText extends StatefulWidget {
 }
 
 class _HighlightTextState extends State<HighlightText> {
-  TextStyle get style => widget.style ?? Theme.of(context).textTheme.body1;
-  TextStyle get activeStyle => widget.activeStyle ?? style.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get style => widget.style ?? Theme.of(context).textTheme.bodyText2;
+  TextStyle get activeStyle =>
+      widget.activeStyle ?? style.copyWith(fontWeight: FontWeight.bold);
 
   @override
   Widget build(BuildContext context) {
@@ -79,17 +80,17 @@ List<Triplet<int, int, bool>> getQueryHighlights(String text, String query) {
     }
   } while (w.contains(q));
 
-  if (idxs.isEmpty)
+  if (idxs.isEmpty) {
     idxs.add(Triplet(0, t.length, false));
-  else {
+  } else {
     final List<Triplet<int, int, bool>> result = [];
     Triplet<int, int, bool> last;
-    for (var idx in idxs) {
+    for (final idx in idxs) {
       final isLast = idx == idxs.last;
       if (last == null) {
-        if (idx.first == 0)
+        if (idx.first == 0) {
           result.add(idx);
-        else {
+        } else {
           result..add(Triplet(0, idx.first, false))..add(idx);
         }
       } else if (last.second == idx.first) {

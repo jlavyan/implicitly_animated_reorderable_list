@@ -84,9 +84,9 @@ class _HandleState extends State<Handle> {
     _vibrate();
   }
 
-  void _onDragUpdated(Offset pointer, bool upward) {
+  void _onDragUpdated(Offset pointer) {
     _currentOffset = _isVertical ? pointer.dy : pointer.dx;
-    _list?.onDragUpdated(_delta, isUpward: upward);
+    _list?.onDragUpdated(_delta);
   }
 
   void _onDragEnded() {
@@ -105,9 +105,7 @@ class _HandleState extends State<Handle> {
     final hasParent = _scrollable != null;
     final physics = _list?.widget?.physics;
 
-    return hasParent &&
-        physics != null &&
-        physics is NeverScrollableScrollPhysics;
+    return hasParent && physics != null && physics is NeverScrollableScrollPhysics;
   }
 
   void _addScrollListener() {
@@ -143,8 +141,7 @@ class _HandleState extends State<Handle> {
     assert(_list != null,
         'No ancestor ImplicitlyAnimatedReorderableList was found in the hierarchy!');
     _reorderable ??= Reorderable.of(context);
-    assert(_reorderable != null,
-        'No ancestor Reorderable was found in the hierarchy!');
+    assert(_reorderable != null, 'No ancestor Reorderable was found in the hierarchy!');
     _scrollable = Scrollable.of(_list.context);
 
     return Listener(
@@ -166,10 +163,9 @@ class _HandleState extends State<Handle> {
       },
       onPointerMove: (event) {
         final pointer = event.localPosition;
-        final delta = _isVertical ? event.delta.dy : event.delta.dx;
 
         if (_inDrag && _inReorder) {
-          _onDragUpdated(pointer, delta.isNegative);
+          _onDragUpdated(pointer);
         }
       },
       onPointerUp: (_) => _cancelReorder(),

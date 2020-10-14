@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
 
+// ignore_for_file: avoid_print
+
 class VerticalNestedExample extends StatefulWidget {
   const VerticalNestedExample();
 
@@ -22,7 +24,7 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
   void initState() {
     super.initState();
 
-    setTimer();
+    // setTimer();
   }
 
   void setTimer() {
@@ -87,9 +89,8 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
                 builder: (context, child) {
                   Widget card = Card(
                     elevation: 8,
-                    child: AnimatedContainer(
-                      height: inDrag ? 150 : 120,
-                      duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      height: 120,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -110,11 +111,7 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
                     );
                   }
 
-                  return Transform(
-                    transform: Matrix4.rotationZ(0.25 * dragAnimation.value),
-                    alignment: FractionalOffset.centerRight,
-                    child: card,
-                  );
+                  return card;
                 },
               );
             },

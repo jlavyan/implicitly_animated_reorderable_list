@@ -1,5 +1,7 @@
 import 'package:implicitly_animated_reorderable_list/src/diff/myers_diff.dart';
 
+// ignore_for_file: avoid_print
+
 class Item {
   Item(this.id, this.value);
 
@@ -8,7 +10,8 @@ class Item {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is Item && runtimeType == other.runtimeType && id == other.id;
+      identical(this, other) ||
+      other is Item && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -19,7 +22,7 @@ Future<void> main() async {
   final List<Item> newList = List.from(list)..shuffle();
 
   final start = DateTime.now();
-  final result = await MyersDiff.diff<Item>(
+  await MyersDiff.diff<Item>(
     newList,
     list,
     areItemsTheSame: (a, b) => a.id == b.id,
