@@ -237,7 +237,7 @@ class ImplicitlyAnimatedReorderableListState<E>
   int get _dragIndex => dragItem?.index;
   double get _dragStart => dragItem.start + _dragDelta;
   double get _dragEnd => dragItem.end + _dragDelta;
-  double get _dragCenter => dragItem.middle + _dragDelta;
+  // double get _dragCenter => dragItem.middle + _dragDelta;
   double get _dragSize => isVertical ? dragItem.height : dragItem.width;
 
   final ValueNotifier<double> _dragDeltaNotifier = ValueNotifier(0.0);
@@ -531,9 +531,17 @@ class ImplicitlyAnimatedReorderableListState<E>
       _cancelReorder();
     };
 
-    final delta = swapTargetItem != dragItem
-        ? swapTargetItem.start - _dragStart
-        : -_pointerDelta;
+    final delta = () {
+      if (swapTargetItem == dragItem) {
+        return -_pointerDelta;
+      } else {
+        if (_up) {
+          return swapTargetItem.start - _dragStart;
+        } else {
+          return swapTargetItem.end - _dragEnd;
+        }
+      }
+    }();
 
     _dispatchMove(
       dragKey,
