@@ -236,7 +236,7 @@ class ImplicitlyAnimatedReorderableListState<E>
   Key get dragKey => dragItem?.key;
   int get _dragIndex => dragItem?.index;
   double get _dragStart => dragItem.start + _dragDelta;
-  // double get _dragEnd => dragItem.end + _dragDelta;
+  double get _dragEnd => dragItem.end + _dragDelta;
   double get _dragCenter => dragItem.middle + _dragDelta;
   double get _dragSize => isVertical ? dragItem.height : dragItem.width;
 
@@ -338,18 +338,19 @@ class ImplicitlyAnimatedReorderableListState<E>
       final translation = getTranslation(key);
 
       final index = item.index;
-      final currentItemCenter = item.middle + translation;
+      final itemStart = item.start + translation;
+      final itemEnd = item.end + translation;
 
       if (index < _dragIndex) {
-        if (currentItemCenter >= _dragCenter && translation == 0) {
+        if (itemStart >= _dragStart && translation == 0) {
           _dispatchMove(key, _dragSize);
-        } else if (currentItemCenter <= _dragCenter && translation != 0) {
+        } else if (itemEnd <= _dragEnd && translation != 0) {
           _dispatchMove(key, 0);
         }
       } else if (index > _dragIndex) {
-        if (currentItemCenter >= _dragCenter && translation != 0) {
+        if (itemStart >= _dragStart && translation != 0) {
           _dispatchMove(key, 0);
-        } else if (currentItemCenter <= _dragCenter && translation == 0) {
+        } else if (itemEnd <= _dragEnd && translation == 0) {
           _dispatchMove(key, -_dragSize);
         }
       }

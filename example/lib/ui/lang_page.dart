@@ -240,6 +240,8 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
         color: color,
         elevation: elevation,
         alignment: Alignment.center,
+        // For testing different size item. You can comment this line
+        padding: lang.englishName == 'English' ? const EdgeInsets.symmetric(vertical: 16.0) : EdgeInsets.zero,
         child: ListTile(
           title: Text(
             lang.nativeName,
