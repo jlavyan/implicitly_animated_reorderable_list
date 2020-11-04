@@ -446,63 +446,6 @@ class ImplicitlyAnimatedReorderableListState<E>
     });
   }
 
-  /// Finds the destination of the dragged item.
-  ///
-  /// Items can move up or down, so the position of an item can change while the
-  /// index is not yet changed.
-  ///
-  /// We need virtual indices reflecting moves. An empty space in the virtual indices for a non-drag
-  /// item will be the destination index of the dragged item.
-  _Item findSwapTargetItem() {
-    // Account for the fact, that a move could have been scheduled,
-    // without the widget having fully rebuild itself. In that case, the translation
-    // would be 0.0 (and thus the index calculation wrong) and controller.isAnimating will be true.
-    //
-    // This can be the case, when the user released his finger just
-    // short moments after a move had been scheduled (using _dispatchMove()).
-    for (final item in _itemBoxes.values) {
-      if (item == dragItem) continue;
-      final translation = getTranslation(item.key);
-      final controller = _itemTranslations[item.key];
-      if (translation == 0.0 && controller?.isAnimating == true) {
-        return item;
-      }
-    }
-
-    final currentIndexList =
-        (_itemBoxes.values.toList()..remove(dragItem)).map((item) {
-      final translation = getTranslation(item.key);
-
-      if (translation == 0) {
-        return item.index;
-      } else if (translation > 0) {
-        return item.index + 1;
-      } else {
-        return item.index - 1;
-      }
-    });
-
-    // _itemBoxes only contains the currently visible items.
-    // Thus account for the fact that the list could have been scrolled
-    // here.
-    final startIndex =
-        _itemBoxes.isNotEmpty ? _itemBoxes.values.first.index : 0;
-    var dragTargetIndex = _dragIndex;
-    for (var i = 0; i < _itemBoxes.length; i++) {
-      final index = startIndex + i;
-
-      if (!currentIndexList.contains(index)) {
-        dragTargetIndex = index;
-        break;
-      }
-    }
-
-    return _itemBoxes.values.firstWhere(
-      (item) => item.index == dragTargetIndex,
-      orElse: () => dragItem,
-    );
-  }
-
   void onDragEnded() {
     if (dragKey == null) return;
 
@@ -556,6 +499,65 @@ class ImplicitlyAnimatedReorderableListState<E>
 
     _disposeOfDragCallback();
     setState(() => _inDrag = false);
+  }
+
+  /// Finds the destination of the dragged item.
+  ///
+  /// Items can move up or down, so the position of an item can change while the
+  /// index is not yet changed.
+  ///
+  /// We need virtual indices reflecting moves. An empty space in the virtual indices for a non-drag
+  /// item will be the destination index of the dragged item.
+  _Item findSwapTargetItem() {
+    // Account for the fact, that a move could have been scheduled,
+    // without the widget having fully rebuild itself. In that case, the translation
+    // would be 0.0 (and thus the index calculation wrong) and controller.isAnimating will be true.
+    //
+    // This can be the case, when the user released his finger just
+    // short moments after a move had been scheduled (using _dispatchMove()).
+    for (final item in _itemBoxes.values) {
+      if (item == dragItem) continue;
+      final translation = getTranslation(item.key);
+      final controller = _itemTranslations[item.key];
+      if (translation == 0.0 && controller?.isAnimating == true) {
+        return item;
+      }
+    }
+
+    final currentIndexList =
+        (_itemBoxes.values.toList()..remove(dragItem)).map((item) {
+      final translation = getTranslation(item.key);
+
+      if (translation == 0) {
+        return item.index;
+      } else if (translation > 0) {
+        return item.index + 1;
+      } else {
+        return item.index - 1;
+      }
+    }).toList();
+
+    final boxes = _itemBoxes.values.toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+
+    // 'boxes' only contains the currently visible items.
+    // Thus account for the fact that the list could have been scrolled
+    // here.
+    final startIndex = boxes.isNotEmpty ? boxes.first.index : 0;
+    var dragTargetIndex = _dragIndex;
+    for (var i = 0; i < boxes.length; i++) {
+      final index = startIndex + i;
+
+      if (!currentIndexList.contains(index)) {
+        dragTargetIndex = index;
+        break;
+      }
+    }
+
+    return boxes.firstWhere(
+      (item) => item.index == dragTargetIndex,
+      orElse: () => dragItem,
+    );
   }
 
   @override

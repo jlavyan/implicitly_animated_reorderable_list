@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
-
-// ignore_for_file: avoid_print
 
 class VerticalNestedExample extends StatefulWidget {
   const VerticalNestedExample();
@@ -16,7 +12,6 @@ class VerticalNestedExample extends StatefulWidget {
 
 class VerticalNestedExampleState extends State<VerticalNestedExample> {
   List<String> nestedList = List.generate(20, (i) => "$i");
-  bool nestedInReorder = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +19,7 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
     final textTheme = theme.textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.amber,
-      ),
+      appBar: AppBar(backgroundColor: Colors.amber),
       body: ImplicitlyAnimatedReorderableList<String>(
         padding: const EdgeInsets.all(24),
         spawnIsolate: true,
@@ -98,10 +91,5 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
