@@ -67,6 +67,7 @@ class _HandleState extends State<Handle> {
   // scrollDirection of Axis.vertical.
   bool get _isVertical => _list?.isVertical ?? true;
 
+  Offset _pointer;
   double _initialOffset;
   double _currentOffset;
   double get _delta => (_currentOffset ?? 0) - (_initialOffset ?? 0);
@@ -76,14 +77,14 @@ class _HandleState extends State<Handle> {
   bool get _inDrag => _list.inDrag ?? false;
   bool get _inReorder => _list.inReorder ?? false;
 
-  void _onDragStarted(Offset pointer) {
+  void _onDragStarted() {
     _removeScrollListener();
 
     // If the list is already in drag we dont want to
     // initiate a new reorder.
     if (_inReorder) return;
 
-    _initialOffset = _isVertical ? pointer.dy : pointer.dx;
+    _initialOffset = _isVertical ? _pointer.dy : _pointer.dx;
 
     _list?.onDragStarted(_reorderable?.key);
     _reorderable.rebuild();
@@ -145,17 +146,33 @@ class _HandleState extends State<Handle> {
     _scrollable = Scrollable.of(_list.context);
 
     if (widget.capturePointer) {
+      // Sometimes the cancel callbacks of the GestureDetector
+      // are erroneously invoked. Use a plain Listener instead
+      // for now.
       return Listener(
         behavior: HitTestBehavior.translucent,
         onPointerMove: (event) => _onUpdate(event.localPosition),
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onPanDown: (event) => _onDown(event.localPosition),
-          onPanUpdate: (event) {},
-          onPanEnd: (_) => _onUp(),
-          onPanCancel: () => _onUp(),
-          child: widget.child,
-        ),
+        onPointerUp: (_) => _onUp(),
+        onPointerCancel: (_) => _onUp(),
+        child: _isVertical
+            ? GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onVerticalDragDown: (event) => _onDown(event.localPosition),
+                // Only capture the following events.
+                onVerticalDragUpdate: (event) {},
+                onVerticalDragEnd: (_) {},
+                onVerticalDragCancel: () {},
+                child: widget.child,
+              )
+            : GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragDown: (event) => _onDown(event.localPosition),
+                // Only capture the following events.
+                onHorizontalDragUpdate: (event) {},
+                onHorizontalDragEnd: (_) {},
+                onHorizontalDragCancel: () {},
+                child: widget.child,
+              ),
       );
     } else {
       return Listener(
@@ -170,6 +187,8 @@ class _HandleState extends State<Handle> {
   }
 
   void _onDown(Offset pointer) {
+    _pointer = pointer;
+
     // Ensure the list is not already in a reordering
     // state when initiating a new reorder operation.
     if (!_inDrag) {
@@ -178,12 +197,14 @@ class _HandleState extends State<Handle> {
       _addScrollListener();
       _handler = postDuration(
         widget.delay,
-        () => _onDragStarted(pointer),
+        _onDragStarted,
       );
     }
   }
 
   void _onUpdate(Offset pointer) {
+    _pointer = pointer;
+
     if (_inDrag && _inReorder) {
       _onDragUpdated(pointer);
     }

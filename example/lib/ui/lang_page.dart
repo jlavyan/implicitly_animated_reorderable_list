@@ -70,7 +70,6 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
         controller: scrollController,
         // Prevent the ListView from scrolling when an item is
         // currently being dragged.
-        physics: inReorder ? const NeverScrollableScrollPhysics() : null,
         padding: const EdgeInsets.only(bottom: 24),
         children: <Widget>[
           _buildHeadline('Vertically'),

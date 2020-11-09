@@ -1,6 +1,7 @@
-## 0.3.3
+## 0.4.0
 
-+ **Fixed** #50
+* **Fixed** #19, #49, #50
+* **Improved** `Handle` is now able to capture pointer events which allows an `ImplicitlyAnimatedReorderableList` to be placed inside another scrollable without any workarounds.
 * **Breaking** Renamed `dragDuration` to `reorderDuration`
 * **Added** Field `liftDuration`
 * **Added** Field `settleDuration`
