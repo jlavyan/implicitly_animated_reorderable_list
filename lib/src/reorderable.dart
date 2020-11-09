@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'src.dart';
 
 typedef ReorderableBuilder = Widget Function(
-    BuildContext context, Animation<double> animation, bool inDrag);
+  BuildContext context,
+  Animation<double> animation,
+  bool inDrag,
+);
 
 /// The parent widget of every item in an [ImplicitlyAnimatedReorderableList].
 class Reorderable extends StatefulWidget {
@@ -64,6 +67,7 @@ class ReorderableState extends State<Reorderable> with SingleTickerProviderState
   void initState() {
     super.initState();
     key = widget.key ?? UniqueKey();
+    print('reorderable $key');
 
     _dragController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -90,14 +94,16 @@ class ReorderableState extends State<Reorderable> with SingleTickerProviderState
 
   void setTranslation(Animation<double> animation) {
     if (mounted) {
-      setState(() => _translation = animation);
+      setState(() {
+        _translation = animation;
+      });
     }
   }
 
   void rebuild() {
-    if (mounted) {
+    /* if (mounted) {
       setState(() {});
-    }
+    } */
   }
 
   void _registerItem() {
@@ -115,44 +121,29 @@ class ReorderableState extends State<Reorderable> with SingleTickerProviderState
   Widget build(BuildContext context) {
     _registerItem();
 
-    Widget buildChild([Animation animation]) {
+    final child = () {
       if (widget.child != null) {
         return widget.child;
+      } else {
+        return widget.builder(context, _dragAnimation, _inDrag);
       }
+    }();
 
-      animation ??= const AlwaysStoppedAnimation(0.0);
-      return widget.builder(context, animation, _inDrag);
-    }
+    return AnimatedBuilder(
+      child: child,
+      animation: _translation ?? const AlwaysStoppedAnimation(0.0),
+      builder: (context, child) {
+        final offset = _translation?.value ?? 0.0;
 
-    Widget child;
-    if (_dragAnimation != null) {
-      child = AnimatedBuilder(
-        animation: _dragAnimation,
-        builder: (context, _) => buildChild(_dragAnimation),
-      );
-    } else {
-      child = buildChild();
-    }
-
-    if (_translation != null) {
-      return AnimatedBuilder(
-        child: child,
-        animation: _translation,
-        builder: (context, child) {
-          final offset = _translation.value;
-
-          return Transform.translate(
-            offset: Offset(
-              _isVertical ? 0.0 : offset,
-              _isVertical ? offset : 0.0,
-            ),
-            child: child,
-          );
-        },
-      );
-    }
-
-    return child;
+        return Transform.translate(
+          offset: Offset(
+            _isVertical ? 0.0 : offset,
+            _isVertical ? offset : 0.0,
+          ),
+          child: child,
+        );
+      },
+    );
   }
 
   @override

@@ -223,7 +223,7 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
   ScrollController get scrollController => _controller;
 
   _Item dragItem;
-  Reorderable _dragWidget;
+  Widget _dragWidget;
   VoidCallback _onDragEnd;
 
   bool get isVertical => widget.scrollDirection != Axis.horizontal;
@@ -262,6 +262,7 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
   double get _pointerDelta => _pointerDeltaNotifier.value;
   set _pointerDelta(double value) => _pointerDeltaNotifier.value = value;
 
+  final Map<Key, GlobalKey> _keys = {};
   final Map<Key, ReorderableState> _items = {};
   final Map<Key, AnimationController> _itemTranslations = {};
   final Map<Key, _Item> _itemBoxes = {};
@@ -490,12 +491,10 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
     final delta = () {
       if (swapTargetItem == dragItem) {
         return -_pointerDelta;
+      } else if (_up) {
+        return swapTargetItem.start - _dragStart;
       } else {
-        if (_up) {
-          return swapTargetItem.start - _dragStart;
-        } else {
-          return swapTargetItem.end - _dragEnd;
-        }
+        return swapTargetItem.end - _dragEnd;
       }
     }();
 
@@ -685,10 +684,28 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
             key: animatedListKey,
             initialItemCount: newList.length,
             itemBuilder: (context, index, animation) {
-              final item = data[index];
+              final Reorderable reorderable = buildItem(
+                context,
+                animation,
+                data[index],
+                index,
+              );
 
-              final Reorderable child = buildItem(context, animation, item, index);
-              postFrame(() => _measureChild(child.key, index));
+              postFrame(() => _measureChild(reorderable.key, index));
+
+              // Assign a new GlobalKey to the Reorderable
+              // so we can move it in and out of the list
+              // without losing it's state.
+              if (!_keys.containsKey(reorderable.key)) {
+                _keys[reorderable.key] = GlobalKey(
+                  debugLabel: reorderable.key.toString(),
+                );
+              }
+
+              final child = KeyedSubtree(
+                key: _keys[reorderable.key],
+                child: reorderable,
+              );
 
               if (dragKey != null && index == _dragIndex) {
                 final size = dragItem?.size;
@@ -710,9 +727,9 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
                   invisible: !mustRebuild,
                   child: mustRebuild ? child : SizedBox.fromSize(size: size),
                 );
+              } else {
+                return child;
               }
-
-              return child;
             },
           ),
         ),
@@ -750,7 +767,6 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
         return Transform.translate(
           offset: Offset(dx, dy),
           child: Container(
-            key: _dragKey,
             // Set a fixed width on the dragged item in horizontal
             // lists to prevent it from expanding.
             width: !isVertical ? dragItem?.width : null,

@@ -22,7 +22,6 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
       appBar: AppBar(backgroundColor: Colors.amber),
       body: ImplicitlyAnimatedReorderableList<String>(
         padding: const EdgeInsets.all(24),
-        spawnIsolate: true,
         items: nestedList,
         areItemsTheSame: (oldItem, newItem) => oldItem == newItem,
         onReorderFinished: (item, from, to, newList) {
@@ -55,38 +54,31 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
         itemBuilder: (context, itemAnimation, item, index) {
           return Reorderable(
             key: ValueKey(item),
-            builder: (context, dragAnimation, inDrag) {
-              return AnimatedBuilder(
-                animation: dragAnimation,
-                builder: (context, child) {
-                  Widget card = Card(
-                    elevation: 8,
-                    child: Container(
-                      height: 120,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text(item),
-                          const Handle(
-                            child: Icon(Icons.menu),
-                          ),
-                        ],
-                      ),
+            builder: (context, dragAnimation, inDrag) => AnimatedBuilder(
+              animation: dragAnimation,
+              builder: (context, child) => Card(
+                elevation: 4,
+                // SizeFadeTransition clips, so use the
+                // Card as a parent to avoid the box shadow
+                // to be clipped.
+                child: SizeFadeTransition(
+                  animation: itemAnimation,
+                  child: Container(
+                    height: 120,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(item),
+                        const Handle(
+                          child: Icon(Icons.menu),
+                        ),
+                      ],
                     ),
-                  );
-
-                  if (!inDrag) {
-                    card = SizeFadeTransition(
-                      animation: itemAnimation,
-                      child: card,
-                    );
-                  }
-
-                  return card;
-                },
-              );
-            },
+                  ),
+                ),
+              ),
+            ),
           );
         },
       ),

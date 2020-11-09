@@ -90,37 +90,44 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
 
     Widget buildReorderable(
       Language lang,
-      Widget Function(Widget tile) transitionBuilder,
+      Widget Function(Widget tile) transition,
     ) {
       return Reorderable(
         key: ValueKey(lang),
-        builder: (context, dragAnimation, inDrag) {
-          final t = dragAnimation.value;
-          final tile = _buildTile(t, lang);
-
-          // If the item is in drag, only return the tile as the
-          // SizeFadeTransition would clip the shadow.
-          if (t > 0.0) {
-            return tile;
-          }
-
-          return transitionBuilder(
-            Column(
+        builder: (context, dragAnimation, inDrag) => AnimatedBuilder(
+          animation: dragAnimation,
+          builder: (context, child) {
+            final tile = Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                tile,
+                _buildTile(lang),
                 const Divider(height: 0),
               ],
-            ),
-          );
-        },
+            );
+
+            return AnimatedBuilder(
+              child: tile,
+              animation: dragAnimation,
+              builder: (context, tile) {
+                final t = dragAnimation.value;
+                final color = Color.lerp(Colors.white, Colors.grey.shade100, t);
+
+                return Box(
+                  color: color,
+                  elevation: lerpDouble(0, 8, t),
+                  child: transition(tile),
+                );
+              },
+            );
+          },
+        ),
       );
     }
 
     return ImplicitlyAnimatedReorderableList<Language>(
       items: selectedLanguages,
       shrinkWrap: true,
-      reorderDuration: Duration(milliseconds: 100),
+      reorderDuration: Duration(milliseconds: 200),
       liftDuration: Duration(milliseconds: 300),
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
@@ -170,8 +177,6 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
               final t = dragAnimation.value;
               final box = _buildBox(item, t);
 
-              if (t > 0) return box;
-
               return SizeFadeTransition(
                 animation: itemAnimation,
                 axis: Axis.horizontal,
@@ -195,52 +200,41 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildTile(double t, Language lang) {
+  Widget _buildTile(Language lang) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    final color = Color.lerp(Colors.white, Colors.grey.shade100, t);
-    final elevation = lerpDouble(0, 8, t);
-
-    final List<Widget> actions = selectedLanguages.length > 1
-        ? [
-            SlideAction(
-              closeOnTap: true,
-              color: Colors.redAccent,
-              onTap: () {
-                setState(
-                  () => selectedLanguages.remove(lang),
-                );
-              },
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Delete',
-                      style: textTheme.bodyText2.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+    final List<Widget> actions = [
+      SlideAction(
+        closeOnTap: true,
+        color: Colors.redAccent,
+        onTap: () => setState(() => selectedLanguages.remove(lang)),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Delete',
+                style: textTheme.bodyText2.copyWith(
+                  color: Colors.white,
                 ),
               ),
-            ),
-          ]
-        : [];
+            ],
+          ),
+        ),
+      ),
+    ];
 
     return Slidable(
       actionPane: const SlidableBehindActionPane(),
       actions: actions,
       secondaryActions: actions,
-      child: Box(
-        color: color,
-        elevation: elevation,
+      child: Container(
         alignment: Alignment.center,
         // For testing different size item. You can comment this line
         padding: lang.englishName == 'English'
@@ -273,7 +267,8 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
             ),
           ),
           trailing: const Handle(
-            delay: Duration(milliseconds: 100),
+            delay: Duration(milliseconds: 0),
+            capturePointer: true,
             child: Icon(
               Icons.drag_handle,
               color: Colors.grey,

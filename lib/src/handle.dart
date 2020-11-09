@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 
 import 'src.dart';
 
-/// A Handle is used to initiate a drag/reorder of an item inside an
+/// A `Widget` that is used to initiate a drag/reorder of a [Reorderable] inside an
 /// [ImplicitlyAnimatedReorderableList].
 ///
-/// A Handle must have a [Reorderable] and an [ImplicitlyAnimatedReorderableList]
+/// A `Handle` must have a [Reorderable] and an [ImplicitlyAnimatedReorderableList]
 /// as its ancestor.
 class Handle extends StatefulWidget {
   /// The child of this Handle that can initiate a reorder.
@@ -18,7 +18,7 @@ class Handle extends StatefulWidget {
   /// when the drag is initiated.
   ///
   /// If the Handle wraps the whole item, the delay should be greater
-  /// than `Duration.zero` as otherwise the list might become unscrollable.
+  /// than the default `Duration.zero` as otherwise the list might become unscrollable.
   ///
   /// When the [ImplicitlyAnimatedReorderableList] was scrolled in the mean time,
   /// the reorder will be canceled.
@@ -29,6 +29,12 @@ class Handle extends StatefulWidget {
   /// Whether to vibrate when a drag has been initiated.
   final bool vibrate;
 
+  /// Whether the handle should capture the pointer event of the drag.
+  ///
+  /// When this is set to `true`, the `Hanlde` is not allowed to change
+  /// the parent between normal and dragged state.
+  final bool capturePointer;
+
   /// Creates a widget that can initiate a drag/reorder of an item inside an
   /// [ImplicitlyAnimatedReorderableList].
   ///
@@ -38,6 +44,7 @@ class Handle extends StatefulWidget {
     Key key,
     @required this.child,
     this.delay = Duration.zero,
+    this.capturePointer = true,
     this.vibrate = true,
   })  : assert(delay != null),
         assert(child != null),
@@ -68,6 +75,13 @@ class _HandleState extends State<Handle> {
   // recreated between dragged and normal state.
   bool get _inDrag => _list.inDrag ?? false;
   bool get _inReorder => _list.inReorder ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    postFrame(() => print(_reorderable?.key));
+  }
 
   void _onDragStarted(Offset pointer) {
     _removeScrollListener();
@@ -105,17 +119,15 @@ class _HandleState extends State<Handle> {
     final hasParent = _scrollable != null;
     final physics = _list?.widget?.physics;
 
-    return hasParent &&
-        physics != null &&
-        physics is NeverScrollableScrollPhysics;
+    return hasParent && physics != null && physics is NeverScrollableScrollPhysics;
   }
 
   void _addScrollListener() {
     if (widget.delay > Duration.zero) {
       if (_useParentScrollable) {
-        _scrollable.position.addListener(_cancelReorder);
+        _scrollable.position.addListener(_onUp);
       } else {
-        _list?.scrollController?.addListener(_cancelReorder);
+        _list?.scrollController?.addListener(_onUp);
       }
     }
   }
@@ -123,18 +135,11 @@ class _HandleState extends State<Handle> {
   void _removeScrollListener() {
     if (widget.delay > Duration.zero) {
       if (_useParentScrollable) {
-        _scrollable.position.removeListener(_cancelReorder);
+        _scrollable.position.removeListener(_onUp);
       } else {
-        _list?.scrollController?.removeListener(_cancelReorder);
+        _list?.scrollController?.removeListener(_onUp);
       }
     }
-  }
-
-  void _cancelReorder() {
-    _handler?.cancel();
-    _removeScrollListener();
-
-    if (_inDrag) _onDragEnded();
   }
 
   @override
@@ -143,37 +148,58 @@ class _HandleState extends State<Handle> {
     assert(_list != null,
         'No ancestor ImplicitlyAnimatedReorderableList was found in the hierarchy!');
     _reorderable ??= Reorderable.of(context);
-    assert(_reorderable != null,
-        'No ancestor Reorderable was found in the hierarchy!');
+    assert(_reorderable != null, 'No ancestor Reorderable was found in the hierarchy!');
     _scrollable = Scrollable.of(_list.context);
 
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: (event) {
-        final pointer = event.localPosition;
+    if (widget.capturePointer) {
+      return Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerMove: (event) => _onUpdate(event.localPosition),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanDown: (event) => _onDown(event.localPosition),
+          onPanUpdate: (event) {},
+          onPanEnd: (_) => _onUp(),
+          onPanCancel: () => _onUp(),
+          child: widget.child,
+        ),
+      );
+    } else {
+      return Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (event) => _onDown(event.localPosition),
+        onPointerMove: (event) => _onUpdate(event.localPosition),
+        onPointerUp: (_) => _onUp(),
+        onPointerCancel: (_) => _onUp(),
+        child: widget.child,
+      );
+    }
+  }
 
-        // Ensure the list is not already in a reordering
-        // state when initiating a new reorder operation.
-        if (!_inDrag) {
-          _cancelReorder();
+  void _onDown(Offset pointer) {
+    // Ensure the list is not already in a reordering
+    // state when initiating a new reorder operation.
+    if (!_inDrag) {
+      _onUp();
 
-          _addScrollListener();
-          _handler = postDuration(
-            widget.delay,
-            () => _onDragStarted(pointer),
-          );
-        }
-      },
-      onPointerMove: (event) {
-        final pointer = event.localPosition;
+      _addScrollListener();
+      _handler = postDuration(
+        widget.delay,
+        () => _onDragStarted(pointer),
+      );
+    }
+  }
 
-        if (_inDrag && _inReorder) {
-          _onDragUpdated(pointer);
-        }
-      },
-      onPointerUp: (_) => _cancelReorder(),
-      onPointerCancel: (_) => _cancelReorder(),
-      child: widget.child,
-    );
+  void _onUpdate(Offset pointer) {
+    if (_inDrag && _inReorder) {
+      _onDragUpdated(pointer);
+    }
+  }
+
+  void _onUp() {
+    _handler?.cancel();
+    _removeScrollListener();
+
+    if (_inDrag) _onDragEnded();
   }
 }
