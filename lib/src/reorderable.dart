@@ -54,7 +54,8 @@ class Reorderable extends StatefulWidget {
   }
 }
 
-class ReorderableState extends State<Reorderable> with SingleTickerProviderStateMixin {
+class ReorderableState extends State<Reorderable>
+    with SingleTickerProviderStateMixin {
   Key key;
 
   AnimationController _dragController;
@@ -107,7 +108,8 @@ class ReorderableState extends State<Reorderable> with SingleTickerProviderState
 
   void _registerItem() {
     final list = ImplicitlyAnimatedReorderableList.of(context);
-    assert(list != null, 'No ImplicitlyAnimatedListView was found in the hirachy!');
+    assert(list != null,
+        'No ImplicitlyAnimatedListView was found in the hirachy!');
 
     list?.registerItem(this);
     _dragController.duration = list.widget.settleDuration;
