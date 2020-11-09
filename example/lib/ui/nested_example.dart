@@ -23,6 +23,7 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
       body: ImplicitlyAnimatedReorderableList<String>(
         padding: const EdgeInsets.all(24),
         items: nestedList,
+        reorderDuration: Duration(milliseconds: 500),
         areItemsTheSame: (oldItem, newItem) => oldItem == newItem,
         onReorderFinished: (item, from, to, newList) {
           setState(() {
@@ -72,6 +73,7 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
                         Text(item),
                         const Handle(
                           child: Icon(Icons.menu),
+                          capturePointer: true,
                         ),
                       ],
                     ),

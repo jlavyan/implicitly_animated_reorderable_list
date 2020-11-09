@@ -67,7 +67,6 @@ class ReorderableState extends State<Reorderable> with SingleTickerProviderState
   void initState() {
     super.initState();
     key = widget.key ?? UniqueKey();
-    print('reorderable $key');
 
     _dragController = AnimationController(
       duration: const Duration(milliseconds: 300),

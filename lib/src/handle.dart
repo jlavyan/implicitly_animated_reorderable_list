@@ -76,13 +76,6 @@ class _HandleState extends State<Handle> {
   bool get _inDrag => _list.inDrag ?? false;
   bool get _inReorder => _list.inReorder ?? false;
 
-  @override
-  void initState() {
-    super.initState();
-
-    postFrame(() => print(_reorderable?.key));
-  }
-
   void _onDragStarted(Offset pointer) {
     _removeScrollListener();
 

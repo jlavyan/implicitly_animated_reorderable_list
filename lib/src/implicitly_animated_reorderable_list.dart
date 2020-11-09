@@ -403,6 +403,7 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
     }
 
     _items[key]?.setTranslation(controller);
+    _itemTranslations[key] = controller;
 
     // ignore: avoid_single_cascade_in_expression_statements
     controller.animateTo(
@@ -411,8 +412,6 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
     )..whenCompleteOrCancel(
         () => onEnd?.call(),
       );
-
-    _itemTranslations[key] = controller;
   }
 
   void _adjustScrollPositionWhenNecessary() {
@@ -463,15 +462,15 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
   void onDragEnded() {
     if (dragKey == null) return;
 
-    final swapTargetItem = findSwapTargetItem();
+    final target = findDropTargetItem();
 
     _onDragEnd = () {
       if (_dragIndex != null) {
-        if (!_itemBoxes.containsKey(swapTargetItem.key)) {
-          _measureChild(swapTargetItem.key);
+        if (!_itemBoxes.containsKey(target.key)) {
+          _measureChild(target.key);
         }
 
-        final toIndex = _itemBoxes[swapTargetItem.key]?.index;
+        final toIndex = _itemBoxes[target.key]?.index;
         if (toIndex != null) {
           final item = data.removeAt(_dragIndex);
           data.insert(toIndex, item);
@@ -488,17 +487,17 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
       _cancelReorder();
     };
 
+    _items[dragKey]?.duration = widget.settleDuration;
+
     final delta = () {
-      if (swapTargetItem == dragItem) {
+      if (target == dragItem) {
         return -_pointerDelta;
       } else if (_up) {
-        return swapTargetItem.start - _dragStart;
+        return target.start - _dragStart;
       } else {
-        return swapTargetItem.end - _dragEnd;
+        return target.end - _dragEnd;
       }
     }();
-
-    _items[dragKey]?.duration = widget.settleDuration;
 
     _dispatchMove(
       dragKey,
@@ -510,67 +509,43 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
       duration: widget.settleDuration,
     );
 
+    avoidConflictingMoves(target);
+
     _scrollAdjuster?.cancel();
 
-    _disposeOfDragCallback();
     setState(() => _inDrag = false);
   }
 
-  /// Finds the destination of the dragged item.
-  ///
-  /// Items can move up or down, so the position of an item can change while the
-  /// index is not yet changed.
-  ///
-  /// We need virtual indices reflecting moves. An empty space in the virtual indices for a non-drag
-  /// item will be the destination index of the dragged item.
-  _Item findSwapTargetItem() {
-    // Account for the fact, that a move could have been scheduled,
-    // without the widget having fully rebuild itself. In that case, the translation
-    // would be 0.0 (and thus the index calculation wrong) and controller.isAnimating will be true.
-    //
-    // This can be the case, when the user released his finger just
-    // short moments after a move had been scheduled (using _dispatchMove()).
-    for (final item in _itemBoxes.values) {
-      if (item == dragItem) continue;
-      final translation = getTranslation(item.key);
-      final controller = _itemTranslations[item.key];
-      if (translation == 0.0 && controller?.isAnimating == true) {
-        return item;
-      }
-    }
+  _Item findDropTargetItem() {
+    _Item target = dragItem;
 
-    final currentIndexList = (_itemBoxes.values.toList()..remove(dragItem)).map((item) {
-      final translation = getTranslation(item.key);
-
-      if (translation == 0) {
-        return item.index;
-      } else if (translation > 0) {
-        return item.index + 1;
-      } else {
-        return item.index - 1;
-      }
-    }).toList();
-
+    // Boxes are in the order in which they are build, not
+    // necessarily based on their index.
     final boxes = _itemBoxes.values.toList()..sort((a, b) => a.index.compareTo(b.index));
 
-    // 'boxes' only contains the currently visible items.
-    // Thus account for the fact that the list could have been scrolled
-    // here.
-    final startIndex = boxes.isNotEmpty ? boxes.first.index : 0;
-    var dragTargetIndex = _dragIndex;
-    for (var i = 0; i < boxes.length; i++) {
-      final index = startIndex + i;
-
-      if (!currentIndexList.contains(index)) {
-        dragTargetIndex = index;
-        break;
+    for (final box in boxes) {
+      if (_up) {
+        if (_dragStart <= box.start) return box;
+      } else {
+        if (_dragEnd >= box.end) target = box;
       }
     }
 
-    return boxes.firstWhere(
-      (item) => item.index == dragTargetIndex,
-      orElse: () => dragItem,
-    );
+    return target;
+  }
+
+  void avoidConflictingMoves(_Item target) {
+    _itemTranslations.forEach((key, controller) {
+      final item = _itemBoxes[key];
+
+      if (item != dragItem && item != target) {
+        if (item.index < target.index) {
+          controller.reverse();
+        } else {
+          controller.forward();
+        }
+      }
+    });
   }
 
   @override
@@ -767,6 +742,7 @@ class ImplicitlyAnimatedReorderableListState<E> extends ImplicitlyAnimatedListBa
         return Transform.translate(
           offset: Offset(dx, dy),
           child: Container(
+            key: _dragKey,
             // Set a fixed width on the dragged item in horizontal
             // lists to prevent it from expanding.
             width: !isVertical ? dragItem?.width : null,
