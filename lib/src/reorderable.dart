@@ -51,8 +51,7 @@ class Reorderable extends StatefulWidget {
   }
 }
 
-class ReorderableState extends State<Reorderable>
-    with SingleTickerProviderStateMixin {
+class ReorderableState extends State<Reorderable> with SingleTickerProviderStateMixin {
   Key key;
 
   AnimationController _dragController;
@@ -67,7 +66,7 @@ class ReorderableState extends State<Reorderable>
     key = widget.key ?? UniqueKey();
 
     _dragController = AnimationController(
-      duration: Duration.zero,
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
@@ -86,6 +85,9 @@ class ReorderableState extends State<Reorderable>
     }
   }
 
+  // ignore: avoid_setters_without_getters
+  set duration(Duration value) => _dragController.duration = value;
+
   void setTranslation(Animation<double> animation) {
     if (mounted) {
       setState(() => _translation = animation);
@@ -100,11 +102,10 @@ class ReorderableState extends State<Reorderable>
 
   void _registerItem() {
     final list = ImplicitlyAnimatedReorderableList.of(context);
-    assert(list != null,
-        'No ImplicitlyAnimatedListView was found in the hirachy!');
+    assert(list != null, 'No ImplicitlyAnimatedListView was found in the hirachy!');
 
     list?.registerItem(this);
-    _dragController.duration = list.widget.dragDuration;
+    _dragController.duration = list.widget.settleDuration;
 
     inDrag = list.dragItem?.key == key && list.inDrag;
     _isVertical = list?.isVertical ?? true;

@@ -1,38 +1,44 @@
+## 0.3.3
+
++ **Fixed** #50
+* **Breaking** Renamed `dragDuration` to `reorderDuration`
+* **Added** Field `liftDuration`
+* **Added** Field `settleDuration`
+
 ## 0.3.2
 
-* Fix #47
+* **Fixed** #47
 
 ## 0.3.1
 
-* Fix #43
-* Fix changelog
+* **Fixed** #43
+* **Fixed** Changelog
 
 ## 0.3.0
 
-* Fix #23
+* **Fixed** #23
 
 ## 0.2.5
 
-* Bug fixes
-* Fix #14
+* **Fixed** #14
 
 ## 0.2.1
 
-* `ImplicitlyAnimatedList` now always uses the latest items, even if `listEquals()` is `true`.
+* **Improved** `ImplicitlyAnimatedList` now always uses the latest items, even if `listEquals()` is `true`.
 
 ## 0.2.0
 
-* Added support for headers and footers on the `ImplicitlyAnimatedReorderableList`.
-* Added `child` property on `Reorderable` that can be used instead off the `builder` that will use a default elevation animation instead of being forced to specify your own custom animation.
+* **Added** support for headers and footers on the `ImplicitlyAnimatedReorderableList`.
+* **Added** `child` property on `Reorderable` that can be used instead off the `builder` that will use a default elevation animation instead of being forced to specify your own custom animation.
 
 ## 0.1.10
 
-* Bug fixes and performance improvements.
+* **Fixed** Bugs
 
 ## 0.1.4
 
-* Made `Handle` scroll aware to only initiate a drag when the scroll position didn't change.
-* Added horizontal scrollDirection support for `ImplicitlyAnimatedReorderableList`
+* **Improved** `Handle` is now scroll aware and only initiates a drag when the scroll position didn't change.
+* **Added** horizontal scrollDirection support for `ImplicitlyAnimatedReorderableList`
 
 ## 0.1.0
 

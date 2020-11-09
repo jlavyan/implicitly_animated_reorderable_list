@@ -120,6 +120,8 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
     return ImplicitlyAnimatedReorderableList<Language>(
       items: selectedLanguages,
       shrinkWrap: true,
+      reorderDuration: Duration(milliseconds: 100),
+      liftDuration: Duration(milliseconds: 300),
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       areItemsTheSame: (oldItem, newItem) => oldItem == newItem,
@@ -241,7 +243,9 @@ class _LanguagePageState extends State<LanguagePage> with SingleTickerProviderSt
         elevation: elevation,
         alignment: Alignment.center,
         // For testing different size item. You can comment this line
-        padding: lang.englishName == 'English' ? const EdgeInsets.symmetric(vertical: 16.0) : EdgeInsets.zero,
+        padding: lang.englishName == 'English'
+            ? const EdgeInsets.symmetric(vertical: 16.0)
+            : EdgeInsets.zero,
         child: ListTile(
           title: Text(
             lang.nativeName,
