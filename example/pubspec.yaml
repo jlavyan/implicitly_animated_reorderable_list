@@ -1,5 +1,6 @@
 name: example
 description: Example for how to use an ImplicitlyAnimatedReorderableList
+publish_to: none
 
 version: 1.0.0+1
 
@@ -17,7 +18,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 flutter:
   uses-material-design: true

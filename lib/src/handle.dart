@@ -113,9 +113,7 @@ class _HandleState extends State<Handle> {
     final hasParent = _scrollable != null;
     final physics = _list?.widget?.physics;
 
-    return hasParent &&
-        physics != null &&
-        physics is NeverScrollableScrollPhysics;
+    return hasParent && physics != null && physics is NeverScrollableScrollPhysics;
   }
 
   void _addScrollListener() {
@@ -144,8 +142,7 @@ class _HandleState extends State<Handle> {
     assert(_list != null,
         'No ancestor ImplicitlyAnimatedReorderableList was found in the hierarchy!');
     _reorderable ??= Reorderable.of(context);
-    assert(_reorderable != null,
-        'No ancestor Reorderable was found in the hierarchy!');
+    assert(_reorderable != null, 'No ancestor Reorderable was found in the hierarchy!');
     _scrollable = Scrollable.of(_list.context);
 
     if (widget.capturePointer) {
@@ -154,26 +151,27 @@ class _HandleState extends State<Handle> {
       // for now.
       return Listener(
         behavior: HitTestBehavior.translucent,
+        onPointerDown: (event) => _onDown(event.localPosition),
         onPointerMove: (event) => _onUpdate(event.localPosition),
         onPointerUp: (_) => _onUp(),
         onPointerCancel: (_) => _onUp(),
         child: _isVertical
             ? GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onVerticalDragDown: (event) => _onDown(event.localPosition),
+                // onVerticalDragDown: (event) => _onDown(event.localPosition),
                 // Only capture the following events.
-                onVerticalDragUpdate: (event) {},
-                onVerticalDragEnd: (_) {},
-                onVerticalDragCancel: () {},
+                onVerticalDragUpdate: _inDrag ? (_) {} : null,
+                onVerticalDragEnd: _inDrag ? (_) {} : null,
+                onVerticalDragCancel: _inDrag ? () {} : null,
                 child: widget.child,
               )
             : GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onHorizontalDragDown: (event) => _onDown(event.localPosition),
                 // Only capture the following events.
-                onHorizontalDragUpdate: (event) {},
-                onHorizontalDragEnd: (_) {},
-                onHorizontalDragCancel: () {},
+                onHorizontalDragUpdate: _inDrag ? (_) {} : null,
+                onHorizontalDragEnd: _inDrag ? (_) {} : null,
+                onHorizontalDragCancel: _inDrag ? () {} : null,
                 child: widget.child,
               ),
       );

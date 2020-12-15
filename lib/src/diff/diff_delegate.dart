@@ -21,13 +21,13 @@ class DiffDelegate<E> {
 
     if (diff.size != diffLength) {
       if (diff.size > diffLength) {
-        int sizeDifference = diff.size - diffLength;
+        var sizeDifference = diff.size - diffLength;
         while (sizeDifference > 0) {
           _callback.onRemoved(diff.index + sizeDifference);
           sizeDifference--;
         }
       } else {
-        int insertIndex = diff.size;
+        var insertIndex = diff.size;
         while (insertIndex < diffLength) {
           _callback.onInserted(
               insertIndex + diff.index, diff.items[insertIndex]);
@@ -41,13 +41,13 @@ class DiffDelegate<E> {
   }
 
   void _applyDeletion(Deletion diff) {
-    for (int i = diff.size - 1; i >= 0; i--) {
+    for (var i = diff.size - 1; i >= 0; i--) {
       _callback.onRemoved(diff.index + i);
     }
   }
 
   void _applyInsertion(Insertion<E> diff) {
-    for (int i = 0; i < diff.size; i++) {
+    for (var i = 0; i < diff.size; i++) {
       _callback.onInserted(diff.index + i, diff.items[i]);
     }
   }

@@ -15,8 +15,7 @@ typedef RemovedItemBuilder<W extends Widget, E> = W Function(
 typedef UpdatedItemBuilder<W extends Widget, E> = W Function(
     BuildContext context, Animation<double> animation, E item);
 
-abstract class ImplicitlyAnimatedListBase<W extends Widget, E>
-    extends StatefulWidget {
+abstract class ImplicitlyAnimatedListBase<W extends Widget, E> extends StatefulWidget {
   /// Called, as needed, to build list item widgets.
   ///
   /// List items are only built when they're scrolled into view.
@@ -208,14 +207,17 @@ abstract class ImplicitlyAnimatedListBaseState<
   @nonVirtual
   @protected
   @override
-  bool areItemsTheSame(E oldItem, E newItem) =>
-      widget.areItemsTheSame(oldItem, newItem);
+  bool areItemsTheSame(E oldItem, E newItem) => widget.areItemsTheSame(oldItem, newItem);
 
   @mustCallSuper
   @protected
   @override
   void onInserted(int index, E item) {
-    list.insertItem(index, duration: widget.insertDuration);
+    try {
+      list.insertItem(index, duration: widget.insertDuration);
+    } catch (_) {
+      // Usually, this shouldn't happen, but just for safety.
+    }
   }
 
   @mustCallSuper
@@ -225,13 +227,19 @@ abstract class ImplicitlyAnimatedListBaseState<
     final item = oldList.getOrNull(index);
     assert(item != null);
 
-    list.removeItem(index, (context, animation) {
-      if (removeItemBuilder != null) {
-        return removeItemBuilder(context, animation, item);
-      }
+    try {
+      list.removeItem(
+        index,
+        (context, animation) {
+          if (removeItemBuilder != null) {
+            return removeItemBuilder(context, animation, item);
+          }
 
-      return itemBuilder(context, animation, item, index);
-    }, duration: widget.removeDuration);
+          return itemBuilder(context, animation, item, index);
+        },
+        duration: widget.removeDuration,
+      );
+    } catch (_) {}
   }
 
   @mustCallSuper
@@ -248,8 +256,7 @@ abstract class ImplicitlyAnimatedListBaseState<
 
   @nonVirtual
   @protected
-  Widget buildItem(
-      BuildContext context, Animation<double> animation, E item, int index) {
+  Widget buildItem(BuildContext context, Animation<double> animation, E item, int index) {
     if (updateItemBuilder != null && changes[item] != null) {
       return buildUpdatedItemWidget(item);
     }

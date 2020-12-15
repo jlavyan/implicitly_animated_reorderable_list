@@ -23,7 +23,6 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
       body: ImplicitlyAnimatedReorderableList<String>(
         padding: const EdgeInsets.all(24),
         items: nestedList,
-        reorderDuration: Duration(milliseconds: 500),
         areItemsTheSame: (oldItem, newItem) => oldItem == newItem,
         onReorderFinished: (item, from, to, newList) {
           setState(() {
@@ -64,18 +63,21 @@ class VerticalNestedExampleState extends State<VerticalNestedExample> {
                 // to be clipped.
                 child: SizeFadeTransition(
                   animation: itemAnimation,
-                  child: Container(
-                    height: 120,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(item),
-                        const Handle(
-                          child: Icon(Icons.menu),
-                          capturePointer: true,
-                        ),
-                      ],
+                  child: Handle(
+                    delay: const Duration(milliseconds: 600),
+                    child: Container(
+                      height: 120,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(item),
+                          /* const Handle(
+                            child: Icon(Icons.menu),
+                            capturePointer: true,
+                          ), */
+                        ],
+                      ),
                     ),
                   ),
                 ),

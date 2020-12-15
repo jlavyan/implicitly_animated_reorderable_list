@@ -585,12 +585,6 @@ class ImplicitlyAnimatedReorderableListState<E>
     });
   }
 
-  void _disposeOfDragCallback() {
-    // jumpTo() disposes of the current drag event which
-    // Scrollable expects us to do.
-    _controller.jumpTo(_controller.offset);
-  }
-
   double getTranslation(Key key) =>
       key == dragKey ? _dragDelta : _itemTranslations[key]?.value ?? 0.0;
 
