@@ -650,6 +650,7 @@ class ImplicitlyAnimatedReorderableListState<E>
     _onRebuild();
 
     final scrollView = CustomScrollView(
+      clipBehavior: Clip.none,
       key: _listKey,
       controller: _controller,
       scrollDirection: widget.scrollDirection,
